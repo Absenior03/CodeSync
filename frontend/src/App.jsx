@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 // Connect to the backend server.
 // When running locally, this will be 'http://localhost:3001'.
 // When deployed, you'll change this to your deployed backend URL.
-const socket = io('http://localhost:3001');
+const socket = io('https://codesync-backend-dniv.onrender.com');
 
 function App() {
   const [roomId, setRoomId] = useState('');
