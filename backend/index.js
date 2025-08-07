@@ -59,9 +59,10 @@ app.post('/api/execute', async (req, res) => {
       });
       res.json(response.data);
     } catch (error) {
-        console.error("Error executing code:", error.response ? error.response.data : error.message);
-        res.status(500).json({ error: 'Failed to execute code.' });
-    }
+    // Send a more detailed error back to the frontend
+    const errorMessage = error.response ? JSON.stringify(error.response.data) : 'Failed to connect to execution service.';
+    res.status(500).json({ error: errorMessage });
+}
 });
 
 
