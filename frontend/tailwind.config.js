@@ -9,9 +9,10 @@ export default {
   ],
   theme: {
     extend: {
-      // Set 'Inter' as the default font family
       fontFamily: {
         sans: ['Inter', ...defaultTheme.fontFamily.sans],
+        // Add Fira Code for the logo
+        mono: ['"Fira Code"', ...defaultTheme.fontFamily.mono],
       },
     },
   },
