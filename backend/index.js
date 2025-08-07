@@ -28,29 +28,36 @@ app.post('/api/execute', async (req, res) => {
 
     // Map our language names to JDoodle's version names
     const languageVersionMap = {
-        javascript: 'nodejs',
-        python: 'python3',
-        java: 'java',
-        csharp: 'csharp',
-        // Add other languages as needed
+      javascript: { language: 'nodejs', versionIndex: '4' }, // Use a recent LTS version
+      python:     { language: 'python3', versionIndex: '4' }, // Use a recent version
+      java:       { language: 'java', versionIndex: '4' },    // Use a recent version
+      csharp:     { language: 'csharp', versionIndex: '4' },  // .NET 7
+      html:       null, // Cannot be executed
+      css:        null, // Cannot be executed
     };
 
+    const langDetails = languageVersionMap[language];
+
+    if (!langDetails) {
+      return res.status(400).json({ error: `Execution for ${language} is not supported.` });
+    }
+
     try {
-        const response = await axios({
-            method: 'post',
-            url: 'https://api.jdoodle.com/v1/execute',
-            data: {
-                script: code,
-                language: languageVersionMap[language] || language,
-                versionIndex: '0', // Latest version
-                clientId: process.env.JDOODLE_CLIENT_ID,
-                clientSecret: process.env.JDOODLE_CLIENT_SECRET,
-            },
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
-        res.json(response.data);
+    const response = await axios({
+        method: 'post',
+        url: 'https://api.jdoodle.com/v1/execute',
+        data: {
+            script: code,
+            language: langDetails.language,
+            versionIndex: langDetails.versionIndex,
+            clientId: process.env.JDOODLE_CLIENT_ID,
+            clientSecret: process.env.JDOODLE_CLIENT_SECRET,
+        },
+        headers: {
+            'Content-Type': 'application/json',
+        },
+      });
+      res.json(response.data);
     } catch (error) {
         console.error("Error executing code:", error.response ? error.response.data : error.message);
         res.status(500).json({ error: 'Failed to execute code.' });
