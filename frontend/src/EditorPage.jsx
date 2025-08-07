@@ -51,6 +51,8 @@ const EditorPage = ({ socket, roomId, username, onLeave }) => {
 
     socket.on('code-update', (newCode) => {
       applyingChange.current = true;
+      // Also update the local state when receiving changes
+      setCode(newCode);
       if (editorRef.current) {
         editorRef.current.setValue(newCode);
       }
@@ -90,7 +92,7 @@ const EditorPage = ({ socket, roomId, username, onLeave }) => {
         const backendApiUrl = socket.io.uri.replace(/^wss?:\/\//, 'https://');
         const res = await axios.post(`${backendApiUrl}/api/execute`, {
             language,
-            code,
+            code, // This will now send the correct, updated code
         });
 
         if (res.data.error) {
@@ -106,8 +108,12 @@ const EditorPage = ({ socket, roomId, username, onLeave }) => {
     setIsLoading(false);
   };
 
+  // *** THIS IS THE CORRECTED FUNCTION ***
   const handleCodeChange = (value) => {
     if (applyingChange.current) return;
+    // 1. Update the local React state so "Run Code" has the latest version
+    setCode(value);
+    // 2. Emit the change to other users in the room
     socket.emit('code-change', { roomId, code: value });
   };
 
@@ -173,6 +179,7 @@ const EditorPage = ({ socket, roomId, username, onLeave }) => {
                   height="100%"
                   language={language}
                   theme="vs-dark"
+                  value={code} // Ensure editor value is controlled by state
                   onMount={handleEditorDidMount}
                   onChange={handleCodeChange}
                   options={{ fontSize: 16, wordWrap: 'on' }}
