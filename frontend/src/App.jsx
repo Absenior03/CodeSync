@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Toaster } from 'react-hot-toast';
 import io from 'socket.io-client';
 import EditorPage from './EditorPage';
 import LandingPage from './LandingPage';
@@ -30,13 +31,30 @@ function App() {
   };
 
   return (
-    <div className="h-screen bg-gray-900 text-white">
-      {!joined ? (
-        <LandingPage onJoin={handleJoin} />
-      ) : (
-        <EditorPage socket={socket} roomId={roomId} username={username} onLeave={handleLeave} />
-      )}
-    </div>
+    <>
+      {/* This component will render the toast notifications */}
+      <div><Toaster position="top-right" toastOptions={{
+          success: {
+            style: {
+              background: '#28a745',
+              color: 'white',
+            },
+          },
+          error: {
+             style: {
+              background: '#dc3545',
+              color: 'white',
+            },
+          },
+      }} /></div>
+      <div className="h-screen bg-gray-900 text-white">
+        {!joined ? (
+          <LandingPage onJoin={handleJoin} />
+        ) : (
+          <EditorPage socket={socket} roomId={roomId} username={username} onLeave={handleLeave} />
+        )}
+      </div>
+    </>
   );
 }
 
