@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Editor from '@monaco-editor/react';
 import io from 'socket.io-client';
 import EditorPage from './EditorPage';
 import LandingPage from './LandingPage';
@@ -11,14 +10,23 @@ const socket = io('https://codesync-backend-dniv.onrender.com');
 
 function App() {
   const [roomId, setRoomId] = useState('');
+  const [username, setUsername] = useState('');
   const [joined, setJoined] = useState(false);
 
-  const handleJoin = (id) => {
-    if (id.trim()) {
+  const handleJoin = (id, name) => {
+    if (id.trim() && name.trim()) {
       setRoomId(id);
+      setUsername(name);
       setJoined(true);
-      socket.emit('join-room', id);
+      socket.emit('join-room', { roomId: id, username: name });
     }
+  };
+
+  const handleLeave = () => {
+    socket.emit('leave-room');
+    setJoined(false);
+    setRoomId('');
+    setUsername('');
   };
 
   return (
@@ -26,7 +34,7 @@ function App() {
       {!joined ? (
         <LandingPage onJoin={handleJoin} />
       ) : (
-        <EditorPage socket={socket} roomId={roomId} />
+        <EditorPage socket={socket} roomId={roomId} username={username} onLeave={handleLeave} />
       )}
     </div>
   );

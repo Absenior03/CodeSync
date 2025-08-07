@@ -1,17 +1,25 @@
 import React, { useState } from 'react';
-import { Code, Users } from 'lucide-react';
+import { Code, Users, LogIn } from 'lucide-react';
 
 const LandingPage = ({ onJoin }) => {
   const [roomId, setRoomId] = useState('');
+  const [username, setUsername] = useState('');
 
   const handleJoinClick = () => {
-    onJoin(roomId);
+    if (username.trim()) {
+        onJoin(roomId, username);
+    } else {
+        alert('Please enter a username.');
+    }
   };
 
   const handleCreateRoom = () => {
-    // Generate a simple random room ID
-    const newRoomId = Math.random().toString(36).substring(2, 8);
-    onJoin(newRoomId);
+    if (username.trim()) {
+        const newRoomId = Math.random().toString(36).substring(2, 8);
+        onJoin(newRoomId, username);
+    } else {
+        alert('Please enter a username.');
+    }
   };
 
   return (
@@ -25,27 +33,29 @@ const LandingPage = ({ onJoin }) => {
         </p>
       </div>
       <div className="bg-gray-800 p-8 rounded-lg shadow-2xl w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-6 text-center">Join a Session</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-center">Join or Create a Session</h2>
         <div className="flex flex-col gap-4">
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your username"
+            className="px-4 py-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 text-lg"
+          />
           <input
             type="text"
             value={roomId}
             onChange={(e) => setRoomId(e.target.value)}
-            placeholder="Enter Room ID"
+            placeholder="Enter Room ID (optional)"
             className="px-4 py-3 bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500 text-lg"
           />
           <button
             onClick={handleJoinClick}
             className="px-4 py-3 bg-cyan-600 hover:bg-cyan-700 rounded-md font-bold text-lg transition-colors flex items-center justify-center gap-2"
           >
-            <Users size={20} /> Join Room
+            <LogIn size={20} /> Join with ID
           </button>
-          <div className="relative flex py-4 items-center">
-            <div className="flex-grow border-t border-gray-600"></div>
-            <span className="flex-shrink mx-4 text-gray-400">OR</span>
-            <div className="flex-grow border-t border-gray-600"></div>
-          </div>
-          <button
+           <button
             onClick={handleCreateRoom}
             className="px-4 py-3 bg-gray-700 hover:bg-gray-600 rounded-md font-bold text-lg transition-colors"
           >
