@@ -4,6 +4,7 @@ import { Users, Code, Play, LogOut, Clipboard } from 'lucide-react';
 import axios from 'axios';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import toast from 'react-hot-toast';
+import FuzzyText from './FuzzyText';
 
 const languages = [
   { value: 'javascript', label: 'JavaScript' },
@@ -163,8 +164,20 @@ const EditorPage = ({ socket, roomId, username, onLeave }) => {
     <div className="flex h-screen">
       <aside className="w-64 bg-gray-800 p-4 flex flex-col border-r border-gray-700">
         <div className="flex items-center gap-2 mb-6">
-            <Code className="text-cyan-400" />
-            <h1 className="text-2xl font-bold text-cyan-400">CodeSync</h1>
+            <FuzzyText
+              fontSize="1.5rem"
+              fontWeight={700}
+              color="#22d3ee"
+              enableHover={true}
+              baseIntensity={0.08}
+              hoverIntensity={0.28}
+              fuzzRange={12}
+              transitionDuration={220}
+              direction="horizontal"
+              className="cursor-pointer"
+            >
+              CodeSync
+            </FuzzyText>
         </div>
         <div className="mb-4">
             <label className="text-sm text-gray-400">Language</label>

@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Toaster } from 'react-hot-toast';
 import io from 'socket.io-client';
 import EditorPage from './EditorPage';
 import LandingPage from './LandingPage';
@@ -13,14 +12,68 @@ function App() {
   const [roomId, setRoomId] = useState('');
   const [username, setUsername] = useState('');
   const [joined, setJoined] = useState(false);
+  const [landingError, setLandingError] = useState('');
 
-  const handleJoin = (id, name) => {
-    if (id.trim() && name.trim()) {
-      setRoomId(id);
-      setUsername(name);
-      setJoined(true);
-      socket.emit('join-room', { roomId: id, username: name });
+  const handleJoin = (id, name, options = { mode: 'join' }) => {
+    const roomIdValue = id.trim();
+    const usernameValue = name.trim();
+
+    if (!usernameValue) {
+      setLandingError('Username is required.');
+      return;
     }
+
+    if (options.mode === 'create') {
+      if (roomIdValue && !/^\d{6}$/.test(roomIdValue)) {
+        setLandingError('Custom room ID must be exactly 6 digits.');
+        return;
+      }
+
+      const optimisticRoomId = roomIdValue || String(Math.floor(Math.random() * 1000000)).padStart(6, '0');
+      setLandingError('');
+      setRoomId(optimisticRoomId);
+      setUsername(usernameValue);
+      setJoined(true);
+
+      socket.emit('create-room', { roomId: roomIdValue, username: usernameValue }, (response) => {
+        if (!response?.success) {
+          setJoined(false);
+          setRoomId('');
+          setUsername('');
+          setLandingError(response?.error || 'Failed to create room.');
+          return;
+        }
+
+        setRoomId(response.roomId);
+        setUsername(usernameValue);
+        setJoined(true);
+      });
+      return;
+    }
+
+    if (!/^\d{6}$/.test(roomIdValue)) {
+      setLandingError('Room ID must be exactly 6 digits.');
+      return;
+    }
+
+    setLandingError('');
+    setRoomId(roomIdValue);
+    setUsername(usernameValue);
+    setJoined(true);
+
+    socket.emit('join-room', { roomId: roomIdValue, username: usernameValue }, (response) => {
+      if (!response?.success) {
+        setJoined(false);
+        setRoomId('');
+        setUsername('');
+        setLandingError(response?.error || 'Failed to join room.');
+        return;
+      }
+
+      setRoomId(roomIdValue);
+      setUsername(usernameValue);
+      setJoined(true);
+    });
   };
 
   const handleLeave = () => {
@@ -32,24 +85,9 @@ function App() {
 
   return (
     <>
-      {/* This component will render the toast notifications */}
-      <div><Toaster position="top-right" toastOptions={{
-          success: {
-            style: {
-              background: '#28a745',
-              color: 'white',
-            },
-          },
-          error: {
-             style: {
-              background: '#dc3545',
-              color: 'white',
-            },
-          },
-      }} /></div>
       <div className="h-screen bg-gray-900 text-white">
         {!joined ? (
-          <LandingPage onJoin={handleJoin} />
+          <LandingPage onJoin={handleJoin} serverError={landingError} />
         ) : (
           <EditorPage socket={socket} roomId={roomId} username={username} onLeave={handleLeave} />
         )}

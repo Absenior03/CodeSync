@@ -5,11 +5,29 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    font-family: 'Google Sans Flex', 'Segoe UI', sans-serif;
+    font-optical-sizing: auto;
+    font-variation-settings: 'slnt' 0, 'wdth' 100, 'GRAD' 0, 'XTRA' 468, 'YOPQ' 79, 'YTAS' 750;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+code,
+pre,
+kbd,
+samp,
+.font-mono,
+.monaco-editor,
+.monaco-editor * {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+        'Courier New', monospace !important;
 }
 
 /* Style for the remote cursors */
@@ -64,4 +82,127 @@ body {
 .animate-fade-in-up {
     animation: fade-in-up 0.8s ease-out 0.2s forwards;
     opacity: 0; /* Start hidden */
+}
+
+.room-switcher {
+    position: relative;
+    width: min(92vw, 460px);
+    height: 420px;
+    margin: 0 auto;
+    transform-style: preserve-3d;
+}
+
+.room-card {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    transform-style: preserve-3d;
+}
+
+.room-card-shell {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgba(165, 243, 252, 0.2);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    backdrop-filter: blur(14px);
+    background: rgba(255, 255, 255, 0.1);
+    transition: transform 200ms ease;
+}
+
+.room-switcher.show-join .room-card-join {
+    z-index: 2;
+    pointer-events: auto;
+    transform: translateZ(60px) scale(1) rotate(0deg);
+}
+
+.room-switcher.show-join .room-card-create {
+    z-index: 1;
+    pointer-events: none;
+    transform: translateZ(-120px) scale(0.92) rotate(7deg);
+}
+
+.room-switcher.show-create .room-card-create {
+    z-index: 2;
+    pointer-events: auto;
+    transform: translateZ(60px) scale(1) rotate(0deg);
+}
+
+.room-switcher.show-create .room-card-join {
+    z-index: 1;
+    pointer-events: none;
+    transform: translateZ(-120px) scale(0.92) rotate(7deg);
+}
+
+.room-switcher.animate-to-create .room-card-join {
+    z-index: 3;
+    pointer-events: none;
+    animation: join-to-back 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.room-switcher.animate-to-create .room-card-create {
+    z-index: 2;
+    pointer-events: none;
+    animation: create-to-front 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.room-switcher.animate-to-join .room-card-create {
+    z-index: 3;
+    pointer-events: none;
+    animation: create-to-back 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.room-switcher.animate-to-join .room-card-join {
+    z-index: 2;
+    pointer-events: none;
+    animation: join-to-front 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes create-to-front {
+    0% {
+        transform: translateX(0) translateZ(-120px) scale(0.92) rotate(7deg);
+    }
+    45% {
+        transform: translateX(120px) translateZ(-20px) scale(0.96) rotate(4deg);
+    }
+    100% {
+        transform: translateX(0) translateZ(60px) scale(1) rotate(0deg);
+    }
+}
+
+@keyframes join-to-back {
+    0% {
+        transform: translateX(0) translateZ(60px) scale(1) rotate(0deg);
+    }
+    50% {
+        transform: translateX(-220px) translateZ(20px) scale(0.97) rotate(-2deg);
+    }
+    100% {
+        transform: translateX(0) translateZ(-120px) scale(0.92) rotate(7deg);
+    }
+}
+
+@keyframes join-to-front {
+    0% {
+        transform: translateX(0) translateZ(-120px) scale(0.92) rotate(7deg);
+    }
+    45% {
+        transform: translateX(-120px) translateZ(-20px) scale(0.96) rotate(4deg);
+    }
+    100% {
+        transform: translateX(0) translateZ(60px) scale(1) rotate(0deg);
+    }
+}
+
+@keyframes create-to-back {
+    0% {
+        transform: translateX(0) translateZ(60px) scale(1) rotate(0deg);
+    }
+    50% {
+        transform: translateX(220px) translateZ(20px) scale(0.97) rotate(-2deg);
+    }
+    100% {
+        transform: translateX(0) translateZ(-120px) scale(0.92) rotate(7deg);
+    }
 }

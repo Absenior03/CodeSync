@@ -1,119 +1,120 @@
 // src/DynamicBackground.jsx
 import React, { useRef, useEffect } from 'react';
 
-const DynamicBackground = () => {
+const DynamicBackground = ({ isInputActive = false }) => {
   const canvasRef = useRef(null);
+  const targetSpeedRef = useRef(1);
+  const currentSpeedRef = useRef(1);
+
+  useEffect(() => {
+    targetSpeedRef.current = isInputActive ? 0.35 : 1;
+  }, [isInputActive]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    if (!canvas) return undefined;
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    if (!ctx) return undefined;
 
-    let particlesArray = [];
-    const mouse = {
-      x: null,
-      y: null,
-      radius: 150
+    const matrixChars =
+      '01{}[]()<>/*+-=;:.#@$%^&|!?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const stackLength = 16;
+    let animationFrameId = 0;
+    let lastTimestamp = 0;
+    let drops = [];
+    let columnCount = 0;
+    let fontSize = 16;
+
+    const init = () => {
+      const dpr = window.devicePixelRatio || 1;
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      fontSize = Math.max(12, Math.floor(width / 110));
+      columnCount = Math.ceil(width / fontSize);
+      drops = new Array(columnCount)
+        .fill(0)
+        .map(() => Math.floor(Math.random() * Math.floor(height / fontSize)) * -1);
     };
 
-    window.addEventListener('mousemove', (event) => {
-      mouse.x = event.x;
-      mouse.y = event.y;
-    });
+    const draw = (timestamp) => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
 
-    const codeChars = ['{', '}', '[', ']', ';', ':', '"', '<', '>', '/', '=', '+', '-', '*', '(', ')'];
+      // Smoothly transition matrix speed in ~1-2 seconds instead of snapping.
+      const deltaTime = lastTimestamp ? timestamp - lastTimestamp : 16;
+      lastTimestamp = timestamp;
+      const transitionMs = 400;
+      const interpolation = Math.min(1, deltaTime / transitionMs);
+      currentSpeedRef.current +=
+        (targetSpeedRef.current - currentSpeedRef.current) * interpolation;
 
-    class Particle {
-      constructor(x, y, directionX, directionY, size, char, color) {
-        this.x = x;
-        this.y = y;
-        this.directionX = directionX;
-        this.directionY = directionY;
-        this.size = size;
-        this.char = char;
-        this.color = color;
-      }
+      ctx.fillStyle = 'rgba(2, 6, 13, 0.24)';
+      ctx.fillRect(0, 0, width, height);
 
-      draw() {
-        ctx.beginPath();
-        ctx.font = `${this.size}px monospace`;
-        ctx.fillStyle = this.color;
-        ctx.fillText(this.char, this.x, this.y);
-      }
+      ctx.font = `${fontSize}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
 
-      update() {
-        if (this.x > canvas.width || this.x < 0) {
-          this.directionX = -this.directionX;
-        }
-        if (this.y > canvas.height) {
-            this.y = 0 - this.size;
-            this.x = Math.random() * canvas.width;
-        }
-        
-        let dx = mouse.x - this.x;
-        let dy = mouse.y - this.y;
-        let distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < mouse.radius + this.size) {
-            if (mouse.x < this.x && this.x < canvas.width - this.size * 10) {
-                this.x += 5;
-            }
-            if (mouse.x > this.x && this.x > this.size * 10) {
-                this.x -= 5;
-            }
-            if (mouse.y < this.y && this.y < canvas.height - this.size * 10) {
-                this.y += 5;
-            }
-            if (mouse.y > this.y && this.y > this.size * 10) {
-                this.y -= 5;
-            }
+      const speedMultiplier = currentSpeedRef.current;
+
+      for (let column = 0; column < drops.length; column += 1) {
+        const x = column * fontSize;
+        const y = drops[column] * fontSize;
+
+        for (let i = 0; i < stackLength; i += 1) {
+          const character = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+          const trailY = y - i * fontSize;
+          if (trailY < -fontSize || trailY > height + fontSize) continue;
+
+          if (i === 0) {
+            ctx.fillStyle = 'rgba(153, 246, 228, 0.62)';
+          } else {
+            const alpha = Math.max(0.04, 0.28 - i * 0.018);
+            ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
+          }
+          ctx.fillText(character, x, trailY);
         }
 
-        this.y += this.directionY;
-        this.draw();
-      }
-    }
+        const baseStep = Math.random() > 0.85 ? 2 : 1;
+        drops[column] += baseStep * speedMultiplier;
 
-    function init() {
-      particlesArray = [];
-      let numberOfParticles = (canvas.height * canvas.width) / 9000;
-      for (let i = 0; i < numberOfParticles; i++) {
-        let size = (Math.random() * 10) + 5;
-        let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
-        let y = (Math.random() * innerHeight);
-        let directionY = (Math.random() * 0.8) + 0.2;
-        let char = codeChars[Math.floor(Math.random() * codeChars.length)];
-        let color = 'rgba(0, 255, 255, 0.3)';
-        particlesArray.push(new Particle(x, y, 0, directionY, size, char, color));
+        if (y > height + Math.random() * 1000) {
+          drops[column] = -Math.floor(Math.random() * 60);
+        }
       }
-    }
 
-    function animate() {
-      requestAnimationFrame(animate);
-      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      animationFrameId = window.requestAnimationFrame(draw);
+    };
 
-      for (let i = 0; i < particlesArray.length; i++) {
-        particlesArray[i].update();
-      }
-    }
-    
+    const handleResize = () => {
+      init();
+    };
+
     init();
-    animate();
-
-    window.addEventListener('resize', () => {
-        canvas.width = innerWidth;
-        canvas.height = innerHeight;
-        init();
-    });
+    animationFrameId = window.requestAnimationFrame(draw);
+    window.addEventListener('resize', handleResize);
 
     return () => {
-        window.removeEventListener('mousemove', null);
-        window.removeEventListener('resize', null);
-    }
+      window.cancelAnimationFrame(animationFrameId);
+      window.removeEventListener('resize', handleResize);
+    };
 
   }, []);
 
-  return <canvas ref={canvasRef} className="fixed top-0 left-0 w-full h-full z-0 animate-fade-in" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed top-0 left-0 h-full w-full z-0 animate-fade-in"
+      aria-hidden="true"
+    />
+  );
 };
 
 export default DynamicBackground;
